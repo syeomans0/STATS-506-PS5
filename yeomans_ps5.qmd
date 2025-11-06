@@ -1,0 +1,33 @@
+---
+title: "Problem Set 5"
+author: "Sydney Yeomans"
+format:
+  html:
+    embed-resources: true
+editor: visual
+---
+
+## Problem 1
+
+
+
+```{r}
+1 + 1
+```
+
+## Problem 2
+
+
+
+```{r}
+1 + 1
+```
+
+## Problem 3
+
+```{r}
+
+2 * 2
+```
+
+
