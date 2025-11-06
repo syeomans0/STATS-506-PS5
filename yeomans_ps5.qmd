@@ -8,26 +8,80 @@ editor: visual
 ---
 
 ## Problem 1
+Create a class to represent Wald-style normal approximation Confidence Intervals. Do this using S4
 
-
+a. For the waldCI class, define the following:
 
 ```{r}
-1 + 1
+
 ```
+
+b. Use your waldCI class to create three objects:
+
+```{r}
+
+```
+
+c. Show that your validator does not allow the creation of invalid confidence intervals: 
+
+```{r}
+
+```
+
+
 
 ## Problem 2
+Repeat problem set 4, question 2, using data.table.
 
-
+a. 
 
 ```{r}
-1 + 1
+
 ```
+
+b.
+
+```{r}
+
+```
+
+
+c.
+
+```{r}
+
+```
+
+
+d.
+
+```{r}
+
+```
+
+
 
 ## Problem 3
+Repeat problem set 4, question 3, using plotly.
+
+a.
 
 ```{r}
 
-2 * 2
 ```
+
+b.
+
+```{r}
+
+```
+
+c.
+
+```{r}
+
+```
+
+
 
 
