@@ -30,37 +30,6 @@ c. Show that your validator does not allow the creation of invalid confidence in
 
 
 
-## Problem 2
-Repeat problem set 4, question 2, using data.table.
-
-a. 
-
-```{r}
-
-```
-
-b.
-
-```{r}
-
-```
-
-
-c.
-
-```{r}
-
-```
-
-
-d.
-
-```{r}
-
-```
-
-
-
 ## Problem 3
 Repeat problem set 4, question 3, using plotly.
 
