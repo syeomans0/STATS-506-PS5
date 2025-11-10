@@ -33,19 +33,48 @@ c. Show that your validator does not allow the creation of invalid confidence in
 ## Problem 3
 Repeat problem set 4, question 3, using plotly.
 
-a.
+```{r}
+install.packages("plotly")
+library(plotly)
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+```
+
+```{r}
+#| echo: true
+nyt <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/refs/heads/master/rolling-averages/us-states.csv")
+```
+
+a. How many major and minor spikes in cases were there?
+
+```{r}
+nyt$date <- as.Date(nyt$date)
+
+nyt_spikes <- nyt %>%
+              mutate(month = format(as.Date(date), "%Y-%m")) %>%  
+              group_by(month) %>%
+              summarize(monthly_cases = sum(cases, na.rm = TRUE)) %>%
+              ungroup()
+
+p <- plot_ly(nyt_spikes, x = ~ month, y = ~ monthly_cases, type = "scatter", 
+        mode = "lines+markers")
+
+p2 <- p %>% layout(title = "Monthly COVID Cases in the US",
+                  xaxis = list(title="Month"),
+                  yaxis = list(title="Total Cases"))
+p2
+```
+
+From this we see the same thing we say in the last problem set, that there are 7 spikes (5 minor and 2 major). It is nice being able to hover over the dots and see how many cases there are thanks to plotly. 
+
+b. For the states with the highest and lowest overall rates per population, what differences do you see in their trajectories over time?
 
 ```{r}
 
 ```
 
-b.
-
-```{r}
-
-```
-
-c.
+c. Identify, to the best of your ability without a formal test, the first five states to experience Covid in a substantial way.
 
 ```{r}
 
