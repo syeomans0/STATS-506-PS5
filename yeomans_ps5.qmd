@@ -49,6 +49,7 @@ nyt <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/refs/he
 a. How many major and minor spikes in cases were there?
 
 ```{r}
+#| echo: true
 nyt$date <- as.Date(nyt$date)
 
 nyt_spikes <- nyt %>%
@@ -71,15 +72,55 @@ From this we see the same thing we say in the last problem set, that there are 7
 b. For the states with the highest and lowest overall rates per population, what differences do you see in their trajectories over time?
 
 ```{r}
+high_low <- nyt %>% 
+            group_by(state) %>%
+            summarize(highest_rate = max(cases_avg_per_100k, na.rm = TRUE)) %>%
+            filter(highest_rate == max(highest_rate) | highest_rate == min(highest_rate))%>%
+            ungroup()
+
+nyt_highlow <- nyt %>%
+               filter(state == "American Samoa" | state == "Maine")
+
+nyt_highlow$date <- as.Date(nyt_highlow$date)
+
+q <- plot_ly(nyt_highlow, x = ~ date, y = ~ cases_avg_per_100k, color = ~ state, 
+             type = "scatter", mode = "lines")
+
+q2 <- q %>% layout(title = "Comparison of States with Highest and Lowest Overall COVID Cases",
+                  xaxis = list(title="Date"),
+                  yaxis = list(title="Cases on Average per 100K"))
+q2
 
 ```
 
 c. Identify, to the best of your ability without a formal test, the first five states to experience Covid in a substantial way.
 
 ```{r}
+nyt_first <- nyt %>%
+             group_by(state) %>%
+             mutate(date = as.Date(date),
+                    year = format(date, "%Y"),
+                    state = factor(state)) %>%
+             filter(year == "2020")
+
+first_four_mon <- nyt %>%
+                  group_by(state) %>%
+                  mutate(date = as.Date(date),
+                         year = format(date, "%Y"),
+                         state = factor(state)) %>%
+                  filter(date >= as.Date("2020-03-01"),
+                         date <= as.Date("2020-04-30"))
+
+r <- plot_ly(first_four_mon, x = ~ date, y = ~ cases_avg_per_100k, color = ~ state, 
+             type = "scatter", mode = "lines")
+
+r2 <- r %>% layout(title = "First States to Experience COVID in a Substantial Way (2020)",
+                  xaxis = list(title="Date"),
+                  yaxis = list(title="Cases on Average per 100K"))
+r2
 
 ```
 
-
+From this first plot, that focuses solely on the first four months of 2020, we see that New York, New Jersey, and Louisiana are way above the other states so we can guess that they are some of the first states to experience COVID in a substantial way. The other two are convoluted but we can just take the top 7-8 and then go from there. 
 
 
