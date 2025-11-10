@@ -121,6 +121,51 @@ r2
 
 ```
 
-From this first plot, that focuses solely on the first four months of 2020, we see that New York, New Jersey, and Louisiana are way above the other states so we can guess that they are some of the first states to experience COVID in a substantial way. The other two are convoluted but we can just take the top 7-8 and then go from there. 
+From this first plot, that focuses solely on the first four months of 2020, we see that New York, New Jersey, and Louisiana are way above the other states so we can guess that they are some of the first states to experience COVID in a substantial way. The other two are convoluted but we can just take the top 7-8 and then go from there. Zooming in on the plotly we already made we can see other states that have early peaks are Massachusetts, Connecticut, Michigan, and DC (which were the ones showing up last time with ggplot as well). So let us subset the data to just these states.
+
+```{r}
+seven_states <- c("New York", "New Jersey", "Louisiana", "Massachusetts", 
+                  "Connecticut", "District of Columbia", "Michigan")
+
+top_sev <- nyt %>%
+            filter(state %in% seven_states) %>%
+            mutate(date = as.Date(date),
+                   year = format(date, "%Y"),
+                   state = factor(state, levels = seven_states)) %>%
+            filter(date >= as.Date("2020-03-01"),
+                   date <= as.Date("2020-04-30"))
+
+s <- plot_ly(top_sev, x = ~ date, y = ~ cases_avg_per_100k, color = ~ state, 
+             type = "scatter", mode = "lines")
+
+s2 <- s %>% layout(title = "First Seven States to Experience COVID in a Substantial Way (2020)",
+                  xaxis = list(title="Date"),
+                  yaxis = list(title="Cases on Average per 100K"))
+s2
+
+```
+
+If we zoom in and try to see which of these seven reached 10 cases on average per 100k we can pick out the top 5. Of course NY, NJ, and LA, show up again and if we focus on this threshold the other two are MA and CT. Now I will make a last graph just focusing on these 5: NY, NJ, MA, LA, and CT.
+
+```{r}
+funf_state <- c("New York", "New Jersey", "Louisiana", "Massachusetts", 
+                  "Connecticut")
+
+top_five <- nyt %>%
+            filter(state %in% funf_state) %>%
+            mutate(date = as.Date(date),
+                   year = format(date, "%Y"),
+                   state = factor(state, levels = funf_state)) %>%
+            filter(year == "2020")
+
+t <- plot_ly(top_five, x = ~ date, y = ~ cases_avg_per_100k, color = ~ state, 
+             type = "scatter", mode = "lines")
+
+t2 <- t %>% layout(title = "First 5 States to Experience COVID in a Substantial Way (2020)",
+                  xaxis = list(title="Date"),
+                  yaxis = list(title="Cases on Average per 100K"))
+t2
+
+```
 
 
