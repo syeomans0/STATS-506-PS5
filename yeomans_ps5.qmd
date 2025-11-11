@@ -72,6 +72,7 @@ From this we see the same thing we say in the last problem set, that there are 7
 b. For the states with the highest and lowest overall rates per population, what differences do you see in their trajectories over time?
 
 ```{r}
+#| echo: true
 high_low <- nyt %>% 
             group_by(state) %>%
             summarize(highest_rate = max(cases_avg_per_100k, na.rm = TRUE)) %>%
@@ -96,6 +97,7 @@ q2
 c. Identify, to the best of your ability without a formal test, the first five states to experience Covid in a substantial way.
 
 ```{r}
+#| echo: true
 nyt_first <- nyt %>%
              group_by(state) %>%
              mutate(date = as.Date(date),
@@ -124,6 +126,7 @@ r2
 From this first plot, that focuses solely on the first four months of 2020, we see that New York, New Jersey, and Louisiana are way above the other states so we can guess that they are some of the first states to experience COVID in a substantial way. The other two are convoluted but we can just take the top 7-8 and then go from there. Zooming in on the plotly we already made we can see other states that have early peaks are Massachusetts, Connecticut, Michigan, and DC (which were the ones showing up last time with ggplot as well). So let us subset the data to just these states.
 
 ```{r}
+#| echo: true
 seven_states <- c("New York", "New Jersey", "Louisiana", "Massachusetts", 
                   "Connecticut", "District of Columbia", "Michigan")
 
@@ -148,6 +151,7 @@ s2
 If we zoom in and try to see which of these seven reached 10 cases on average per 100k we can pick out the top 5. Of course NY, NJ, and LA, show up again and if we focus on this threshold the other two are MA and CT. Now I will make a last graph just focusing on these 5: NY, NJ, MA, LA, and CT.
 
 ```{r}
+#| echo: true
 funf_state <- c("New York", "New Jersey", "Louisiana", "Massachusetts", 
                   "Connecticut")
 
