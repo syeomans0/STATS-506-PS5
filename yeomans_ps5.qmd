@@ -14,9 +14,8 @@ a. For the waldCI class, define the following:
 
 ```{r}
 #1. a constructor
-setClass("waldCI", slots = c(mean = "numeric", std_error = "numeric",
-                             lower_bound = "numeric", upper_bound = "numeric",
-                             level = "numeric"))
+wald_approx_CI <- setClass("waldCI", slots = c(mean = "numeric", sterr = "numeric",
+                             lb = "numeric", ub = "numeric", level = "numeric"))
 
 waldCI_constructor <- function(x, color) {
   return(new("color_vector", data = x, color = color))
@@ -36,9 +35,9 @@ setValidity("color_vector", function(object){
 setMethod("show", "waldCI",
   function(object) {
     cat("Mean-", object@mean)
-    cat("SE-", object@std_error)
-    cat("Lower bound-", object@lower_bound)
-    cat("Upper bound-", object@upper_bound)
+    cat("SE-", object@sterr)
+    cat("Lower bound-", object@lb)
+    cat("Upper bound-", object@ub)
     cat("Confidence level-", object@level)
     cat("\n")
     return(invisible(object))
@@ -65,42 +64,42 @@ setMethod("mean", "waldCI",
           })
 
 #se
-setGeneric("std_error",
+setGeneric("sterr",
            function(object) {
-             standardGeneric("std_error")
+             standardGeneric("sterr")
            })
-##' @title Return the std_error of a `waldCI`
+##' @title Return the standard error of a `waldCI`
 ##' @param object A `waldCI` object
 ##' @return It's SE
-setMethod("std_error", "waldCI",
+setMethod("sterr", "waldCI",
           function(object) {
-            return(slot(object, "std_error"))
+            return(slot(object, "sterr"))
           })
 
 #lb
-setGeneric("lower_bound",
+setGeneric("lb",
            function(object) {
-             standardGeneric("lower_bound")
+             standardGeneric("lb")
            })
 ##' @title Return the lower bound of a `waldCI`
 ##' @param object A `waldCI` object
 ##' @return It's lower bound
-setMethod("lower_bound", "waldCI",
+setMethod("lb", "waldCI",
           function(object) {
-            return(slot(object, "lower_bound"))
+            return(slot(object, "lb"))
           })
 
 #upb
-setGeneric("upper_bound",
+setGeneric("ub",
            function(object) {
-             standardGeneric("upper_bound")
+             standardGeneric("ub")
            })
 ##' @title Return the upper bound of a `waldCI`
 ##' @param object A `waldCI` object
 ##' @return It's upper bound
-setMethod("upper_bound", "waldCI",
+setMethod("ub", "waldCI",
           function(object) {
-            return(slot(object, "upper_bound"))
+            return(slot(object, "ub"))
           })
 
 #level
@@ -137,51 +136,51 @@ setMethod("mean<-", "waldCI",
 )
 
 #se
-setGeneric("std_error<-",
+setGeneric("sterr<-",
            function(object, value) {
-             standardGeneric("std_error<-")
+             standardGeneric("sterr<-")
            })
 ##' @title Set the std error of a `waldCI`
 ##' @param object A `waldCI` object
 ##' @param value New std error
 ##' @return The updated object
-setMethod("std_error<-", "waldCI",
+setMethod("sterr<-", "waldCI",
   function(object, value) {
-    object@std_error <- value
+    object@sterr <- value
     validObject(object) # Re-run validity check
     return(object)
   }
 )
 
 #lb
-setGeneric("lower_bound<-",
+setGeneric("lb<-",
            function(object, value) {
-             standardGeneric("lower_bound<-")
+             standardGeneric("lb<-")
            })
 ##' @title Set the lower_bound of a `waldCI`
 ##' @param object A `waldCI` object
 ##' @param value New lower_bound
 ##' @return The updated object
-setMethod("lower_bound<-", "waldCI",
+setMethod("lb<-", "waldCI",
   function(object, value) {
-    object@lower_bound <- value
+    object@lb <- value
     validObject(object) # Re-run validity check
     return(object)
   }
 )
 
 #upb
-setGeneric("upper_bound<-",
+setGeneric("ub<-",
            function(object, value) {
-             standardGeneric("upper_bound<-")
+             standardGeneric("ub<-")
            })
 ##' @title Set the upper_bound of a `waldCI`
 ##' @param object A `waldCI` object
 ##' @param value New upper_bound
 ##' @return The updated object
-setMethod("upper_bound<-", "waldCI",
+setMethod("ub<-", "waldCI",
   function(object, value) {
-    object@upper_bound <- value
+    object@ub <- value
     validObject(object) # Re-run validity check
     return(object)
   }
@@ -205,18 +204,75 @@ setMethod("level<-", "waldCI",
 )
 
 #6. a contain method
+##' @title See if value is in `waldCI`
+##' @param object A `waldCI` object
+##' @param value a numeric value
+##' @return a logical of whether a value is within a CI
+setGeneric("contains",
+           function(object, value) {
+             standardGeneric("contains")
+           })
 
+setMethod("contains", "waldCI", function(object, value){
+  lower <- object@lb
+  upper <- object@ub
+  if (value >= lower & value <= upper) {
+    return(TRUE)
+  }
+  return(FALSE)
+})
 
 ```
 
 
 ```{r}
 #7. an overlap method
+##' @title See if two `waldCI` overlap
+##' @param object the first `waldCI` object
+##' @param object the second `waldCI` object
+##' @return a logical of whether the two CIs overlap.
+setGeneric("overlap",
+           function(object1, object2) {
+             standardGeneric("overlap")
+           })
+
+#one # lies inside both intervals
+#intervals overlap if the end of the first is bigger than the lower bound of the second
+#or need the lower bound of the first to be between low2 and up2
+setMethod("overlap", c("waldCI", "waldCI"), function(object1, object2){
+  lower_1 <- object1@lb
+  upper_1 <- object1@ub
+  lower_2 <- object2@lb
+  upper_2 <- object2@ub
+  if (lower_1 <= upper_2 && upper_1 >= lower_2) {
+    return(TRUE)
+  }
+  return(FALSE)
+})
 
 #8. as.numeric to return c(lb, ub)
+##' @title See if two `waldCI` overlap
+##' @param object the first `waldCI` object
+##' @param object the second `waldCI` object
+##' @return a logical of whether the two CIs overlap.
+setMethod("as.numeric", "waldCI",function(object) {
+  return(c(object@lb, object@ub))
+})
 
 #9. transformCI
-
+##' @title transform a `waldCI` object using a monotonci function
+##' @param object A `waldCI` object
+##' @param func function 
+##' @return the transformed `waldCI` object
+##' @warn Warn the user that only monotonic functions make sense.
+setGeneric("transformCI",
+           function(object, func) {
+             standardGeneric("transformCI")
+           })
+setMethod("transformCI", "waldCI", function(object, func){
+  warning("Only monotonic functions make sense")
+  
+})
 
 ```
 
@@ -225,7 +281,38 @@ setMethod("level<-", "waldCI",
 b. Use your waldCI class to create three objects:
 
 ```{r}
+#ci1: (17.2, 24.7), 95%
+#ci2: mean: 13, standard error: 2.5, 99%
+#ci3: (27.43, 39.22), 75%
 
+ci1 <- wald_approx_CI(lower_bound = 17.2, upper_bound = 24.7, level = .95)
+ci2 <- wald_approx_CI(mean = 13, std_error = 2.5, level = .99)
+ci3 <- wald_approx_CI(lower_bound = 27.3, upper_bound = 39.22, level = .75)
+
+```
+
+```{r}
+#evaluate
+ci1
+ci2
+ci3
+as.numeric(ci1)
+as.numeric(ci2)
+as.numeric(ci3)
+lb(ci2)
+ub(ci2)
+mean(ci1)
+sterr(ci3)
+level(ci2)
+lb(ci2) <- 10.5
+mean(ci3) <- 34
+level(ci3) <- .8
+contains(ci1, 17)
+contains(ci3, 44)
+overlap(ci1, ci2)
+eci1 <- transformCI(ci1, sqrt)
+eci1
+mean(transformCI(ci2, log))
 ```
 
 c. Show that your validator does not allow the creation of invalid confidence intervals: 
