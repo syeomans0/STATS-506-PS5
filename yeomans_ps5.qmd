@@ -8,9 +8,10 @@ editor: visual
 ---
 
 ## Problem 1
+
 Create a class to represent Wald-style normal approximation Confidence Intervals. Do this using S4
 
-a. For the waldCI class, define the following:
+a.  For the waldCI class, define the following:
 
 ```{r}
 #| echo: true
@@ -76,7 +77,6 @@ setMethod("show", "waldCI",
 )
 
 ```
-
 
 ```{r}
 #| echo: true
@@ -256,7 +256,6 @@ setMethod("contains", "waldCI", function(object, value){
 
 ```
 
-
 ```{r}
 #7. an overlap method
 ##' @title See if two `waldCI` overlap
@@ -283,34 +282,49 @@ setMethod("overlap", c("waldCI", "waldCI"), function(object1, object2){
 })
 
 #8. as.numeric to return c(lb, ub)
-##' @title See if two `waldCI` overlap
-##' @param object the first `waldCI` object
-##' @param object the second `waldCI` object
-##' @return a logical of whether the two CIs overlap.
+##' @title get the bounds of a `waldCI` overlap
+##' @param x object existing s3 function uses 
+##' @return return c(lb, ub)
 setMethod("as.numeric", "waldCI",function(x) {
   return(c(x@lb, x@ub))
 })
-
-#9. transformCI
-##' @title transform a `waldCI` object using a monotonci function
-##' @param object A `waldCI` object
-##' @param func function 
-##' @return the transformed `waldCI` object
-##' @warn Warn the user that only monotonic functions make sense.
-#setGeneric("transformCI",
-#           function(object, func) {
-#             standardGeneric("transformCI")
-#           })
-#setMethod("transformCI", "waldCI", function(object, func){
-#  warning("Only monotonic functions make sense") #can i use this?
-  
-#})
-
 ```
 
+```{r}
+#9. transformCI:
+#install.packages("numDeriv")
+#library(numDeriv)
+#had help from chat for making this extra function
+check_mono <- function(f,lb,ub,n=100){
+  xs <- seq(lb, ub, length.out = n)
+  grads <- sapply(xs, function(x) grad(f, x)) 
+  all(grads >= 0) || all(grads <= 0)
+}
+##' @title transform a `waldCI` object using a monotonci function
+##' @param object A `waldCI` object
+##' @param func monotone function 
+##' @return the transformed `waldCI` object
+##' @warn Warn the user that only monotonic functions make sense.
+setGeneric("transformCI",
+           function(object, func) {
+             standardGeneric("transformCI")
+           })
+setMethod("transformCI", "waldCI", function(object, func){
+  warning("Only monotonic functions make sense")
+  if (!check_mono(func, object@lb, object@ub)) {
+    stop("Function is not monotonic on the interval")
+  }
+  new_lb <- func(object@lb)
+  new_ub <- func(object@ub)
+  
+  waldCI_constructor(level = object@level, lb = new_lb, ub = new_ub)
+})
+
+```
+I knew I wanted to make a separate function to check the input function was monotone, but didn't really know how to do so without doing a derivative check so had Chat give me some packages that take derivatives of function and it gave me numDeriv. Did some reading on the package and thought it would work for these questions specifically. It then helped me after a poor attempt at checking the if monotone or not and this is how the extra function was made.  
 
 
-b. Use your waldCI class to create three objects:
+b.  Use your waldCI class to create three objects:
 
 ```{r}
 #| echo: true
@@ -343,18 +357,19 @@ level(ci3) <- .8
 contains(ci1, 17)
 contains(ci3, 44)
 overlap(ci1, ci2)
-#eci1 <- transformCI(ci1, sqrt)
-#eci1
-#mean(transformCI(ci2, log))
+eci1 <- transformCI(ci1, sqrt)
+eci1
+mean(transformCI(ci2, log))
 ```
 
-c. Show that your validator does not allow the creation of invalid confidence intervals: 
+c.  Show that your validator does not allow the creation of invalid confidence intervals:
 
 ```{r, error=TRUE}
 #| echo: true
 #negative standard error
 ci4 <- waldCI_constructor(level = .95, mean = 10, sterr = -2)
 ```
+This error still shows that it doesn't work with a negative standard error even without getting to that check since the calculation for the bounds is thrown off due to the negative and we get an error from that as well. 
 
 ```{r, error=TRUE}
 #| echo: true
@@ -375,9 +390,21 @@ ci7 <- waldCI_constructor(level = .95, mean = 15, sterr = 3)
 level(ci7) <- 1
 ```
 
+```{r, error=TRUE}
+#| echo: true
+sterr(ci7) <- -3
+```
 
+```{r, error=TRUE}
+#| echo: true
+ub(ci7) <- 10
+lb(ci7) <- 12
+```
+
+I didn't know if we had to show that all the setters worked properly and the validator covered all cases so I just did all of them to be safe. 
 
 ## Problem 3
+
 Repeat problem set 4, question 3, using plotly.
 
 ```{r}
@@ -393,7 +420,7 @@ library(dplyr)
 nyt <- read.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/refs/heads/master/rolling-averages/us-states.csv")
 ```
 
-a. How many major and minor spikes in cases were there?
+a.  How many major and minor spikes in cases were there?
 
 ```{r}
 #| echo: true
@@ -414,9 +441,9 @@ p2 <- p %>% layout(title = "Monthly COVID Cases in the US",
 p2
 ```
 
-From this we see the same thing we say in the last problem set, that there are 7 spikes (5 minor and 2 major). It is nice being able to hover over the dots and see how many cases there are thanks to plotly. 
+From this we see the same thing we say in the last problem set, that there are 7 spikes (5 minor and 2 major). It is nice being able to hover over the dots and see how many cases there are thanks to plotly.
 
-b. For the states with the highest and lowest overall rates per population, what differences do you see in their trajectories over time?
+b.  For the states with the highest and lowest overall rates per population, what differences do you see in their trajectories over time?
 
 ```{r}
 #| echo: true
@@ -441,7 +468,7 @@ q2
 
 ```
 
-c. Identify, to the best of your ability without a formal test, the first five states to experience Covid in a substantial way.
+c.  Identify, to the best of your ability without a formal test, the first five states to experience Covid in a substantial way.
 
 ```{r}
 #| echo: true
@@ -518,5 +545,3 @@ t2 <- t %>% layout(title = "First 5 States to Experience COVID in a Substantial 
 t2
 
 ```
-
-
