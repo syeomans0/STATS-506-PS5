@@ -13,6 +13,7 @@ Create a class to represent Wald-style normal approximation Confidence Intervals
 a. For the waldCI class, define the following:
 
 ```{r}
+#| echo: true
 #1. a constructor
 setClass("waldCI", slots = c(level = "numeric", mean = "numeric", sterr = "numeric",
                              lb = "numeric", ub = "numeric"))
@@ -32,7 +33,7 @@ waldCI_constructor <- function(level, mean = NULL, sterr = NULL,
     mean <- (lb + ub) / 2
     sterr <- (ub - lb) / (2 * cv)
   }
-  return(new("wald_CI", level = level, mean = mean, sterr = sterr, 
+  return(new("waldCI", level = level, mean = mean, sterr = sterr, 
              lb = lb, ub = ub))
 }
 
@@ -44,17 +45,17 @@ setValidity("waldCI", function(object){
   if (object@sterr < 0) {
     return(paste("@sterr = ", object@sterr, "is negative, make positive"))
   }
-  if (object@level < 0) {
-    return(paste("@level = ", object@level, "is smaller than 0, must be in (0,1)"))
+  if (object@level <= 0) {
+    return(paste("@level = ", object@level, "is < or = 0, must be in (0,1)"))
   }
-  if (object@level > 1) {
-    return(paste("@level = ", object@level, "is greater than 1, must be in (0,1)"))
+  if (object@level >= 1) {
+    return(paste("@level = ", object@level, "is > or = 1, must be in (0,1)"))
   }
-  if (is.infinite(lb)) {
-    return(paste("@lb = ", object@lb, "is not finite"))
+  if (!is.finite(object@lb)) {
+    return(paste("@lb =", object@lb, "is not finite"))
   }
-  if (is.infinite(ub)) {
-    return(paste("@ub = ", object@ub, "is not finite"))
+  if (!is.finite(object@ub)) {
+    return(paste("@ub =", object@ub, "is not finite"))
   }
   return(TRUE)
 })
@@ -78,6 +79,7 @@ setMethod("show", "waldCI",
 
 
 ```{r}
+#| echo: true
 #4. Accessors
 #setGeneric and setMethods 
 #mean
@@ -285,8 +287,8 @@ setMethod("overlap", c("waldCI", "waldCI"), function(object1, object2){
 ##' @param object the first `waldCI` object
 ##' @param object the second `waldCI` object
 ##' @return a logical of whether the two CIs overlap.
-setMethod("as.numeric", "waldCI",function(object) {
-  return(c(object@lb, object@ub))
+setMethod("as.numeric", "waldCI",function(x) {
+  return(c(x@lb, x@ub))
 })
 
 #9. transformCI
@@ -295,14 +297,14 @@ setMethod("as.numeric", "waldCI",function(object) {
 ##' @param func function 
 ##' @return the transformed `waldCI` object
 ##' @warn Warn the user that only monotonic functions make sense.
-setGeneric("transformCI",
-           function(object, func) {
-             standardGeneric("transformCI")
-           })
-setMethod("transformCI", "waldCI", function(object, func){
-  warning("Only monotonic functions make sense") #can i use this?
+#setGeneric("transformCI",
+#           function(object, func) {
+#             standardGeneric("transformCI")
+#           })
+#setMethod("transformCI", "waldCI", function(object, func){
+#  warning("Only monotonic functions make sense") #can i use this?
   
-})
+#})
 
 ```
 
@@ -311,6 +313,7 @@ setMethod("transformCI", "waldCI", function(object, func){
 b. Use your waldCI class to create three objects:
 
 ```{r}
+#| echo: true
 #ci1: (17.2, 24.7), 95%
 #ci2: mean: 13, standard error: 2.5, 99%
 #ci3: (27.43, 39.22), 75%
@@ -340,15 +343,39 @@ level(ci3) <- .8
 contains(ci1, 17)
 contains(ci3, 44)
 overlap(ci1, ci2)
-eci1 <- transformCI(ci1, sqrt)
-eci1
-mean(transformCI(ci2, log))
+#eci1 <- transformCI(ci1, sqrt)
+#eci1
+#mean(transformCI(ci2, log))
 ```
 
 c. Show that your validator does not allow the creation of invalid confidence intervals: 
 
 ```{r}
+#| echo: true
+#negative standard error
+ci4 <- waldCI_constructor(level = .95, mean = 10, sterr = -2)
+ci4
+```
 
+```{r}
+#| echo: true
+#lb > ub
+ci5 <- waldCI_constructor(level = .95, lb = 23, ub = 17)
+ci5
+```
+
+```{r}
+#| echo: true
+#Infinite bounds
+ci6 <- waldCI_constructor(level = .95, lb = -Inf, ub = Inf)
+ci6
+```
+
+```{r}
+#| echo: true
+#invalid use of the setters
+ci7 <- waldCI_constructor(level = .95, mean = 15, sterr = 3)
+level(ci7) <- 1
 ```
 
 
