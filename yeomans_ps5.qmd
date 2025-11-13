@@ -14,17 +14,47 @@ a. For the waldCI class, define the following:
 
 ```{r}
 #1. a constructor
-wald_approx_CI <- setClass("waldCI", slots = c(mean = "numeric", sterr = "numeric",
-                             lb = "numeric", ub = "numeric", level = "numeric"))
+setClass("waldCI", slots = c(level = "numeric", mean = "numeric", sterr = "numeric",
+                             lb = "numeric", ub = "numeric"))
 
-waldCI_constructor <- function(x, color) {
-  return(new("color_vector", data = x, color = color))
+#TAKES IN level
+waldCI_constructor <- function(level, mean = NULL, sterr = NULL,
+                               lb = NULL, ub = NULL) {
+  #if given a mean ans std error need to calc lb & ub
+  #CI = mean +- critical val * se
+  cv <- qnorm(1 - (1 - level)/2)
+  if (!is.null(mean) & !is.null(sterr)) {
+    lb <- mean - cv * sterr
+    ub <- mean + cv * sterr
+  }
+  #if given a lb ans ub need to find mean and se
+  if (!is.null(lb) & !is.null(ub)) {
+    mean <- (lb + ub) / 2
+    sterr <- (ub - lb) / (2 * cv)
+  }
+  return(new("wald_CI", level = level, mean = mean, sterr = sterr, 
+             lb = lb, ub = ub))
 }
 
 #2. a validator
-setValidity("color_vector", function(object){
-  if (!(object@color %in% colors())) {
-    stop(paste("@color = ", object@color, "is not a valid color"))
+setValidity("waldCI", function(object){
+  if (object@lb >= object@ub) {
+    return(paste("@lb = ", object@lb, "is not smaller than ub"))
+  }
+  if (object@sterr < 0) {
+    return(paste("@sterr = ", object@sterr, "is negative, make positive"))
+  }
+  if (object@level < 0) {
+    return(paste("@level = ", object@level, "is smaller than 0, must be in (0,1)"))
+  }
+  if (object@level > 1) {
+    return(paste("@level = ", object@level, "is greater than 1, must be in (0,1)"))
+  }
+  if (is.infinite(lb)) {
+    return(paste("@lb = ", object@lb, "is not finite"))
+  }
+  if (is.infinite(ub)) {
+    return(paste("@ub = ", object@ub, "is not finite"))
   }
   return(TRUE)
 })
@@ -34,11 +64,11 @@ setValidity("color_vector", function(object){
 ##' @param object A `waldCI` object
 setMethod("show", "waldCI",
   function(object) {
-    cat("Mean-", object@mean)
-    cat("SE-", object@sterr)
-    cat("Lower bound-", object@lb)
-    cat("Upper bound-", object@ub)
-    cat("Confidence level-", object@level)
+    cat("Mean-", object@mean, "\n")
+    cat("SE-", object@sterr, "\n")
+    cat("Lower bound-", object@lb, "\n")
+    cat("Upper bound-", object@ub, "\n")
+    cat("Confidence level-", object@level, "\n")
     cat("\n")
     return(invisible(object))
   }
@@ -270,7 +300,7 @@ setGeneric("transformCI",
              standardGeneric("transformCI")
            })
 setMethod("transformCI", "waldCI", function(object, func){
-  warning("Only monotonic functions make sense")
+  warning("Only monotonic functions make sense") #can i use this?
   
 })
 
@@ -285,9 +315,9 @@ b. Use your waldCI class to create three objects:
 #ci2: mean: 13, standard error: 2.5, 99%
 #ci3: (27.43, 39.22), 75%
 
-ci1 <- wald_approx_CI(lower_bound = 17.2, upper_bound = 24.7, level = .95)
-ci2 <- wald_approx_CI(mean = 13, std_error = 2.5, level = .99)
-ci3 <- wald_approx_CI(lower_bound = 27.3, upper_bound = 39.22, level = .75)
+ci1 <- waldCI_constructor(level = .95, lb = 17.2, ub = 24.7)
+ci2 <- waldCI_constructor(level = .99, mean = 13, sterr = 2.5)
+ci3 <- waldCI_constructor(level = .75, lb = 27.3, ub = 39.22)
 
 ```
 
