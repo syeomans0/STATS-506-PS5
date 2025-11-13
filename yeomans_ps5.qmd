@@ -350,28 +350,25 @@ overlap(ci1, ci2)
 
 c. Show that your validator does not allow the creation of invalid confidence intervals: 
 
-```{r}
+```{r, error=TRUE}
 #| echo: true
 #negative standard error
 ci4 <- waldCI_constructor(level = .95, mean = 10, sterr = -2)
-ci4
 ```
 
-```{r}
+```{r, error=TRUE}
 #| echo: true
 #lb > ub
 ci5 <- waldCI_constructor(level = .95, lb = 23, ub = 17)
-ci5
 ```
 
-```{r}
+```{r, error=TRUE}
 #| echo: true
 #Infinite bounds
 ci6 <- waldCI_constructor(level = .95, lb = -Inf, ub = Inf)
-ci6
 ```
 
-```{r}
+```{r, error=TRUE}
 #| echo: true
 #invalid use of the setters
 ci7 <- waldCI_constructor(level = .95, mean = 15, sterr = 3)
@@ -384,7 +381,7 @@ level(ci7) <- 1
 Repeat problem set 4, question 3, using plotly.
 
 ```{r}
-install.packages("plotly")
+#install.packages("plotly")
 library(plotly)
 library(ggplot2)
 library(tidyverse)
